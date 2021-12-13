@@ -1,4 +1,5 @@
 import os
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from depth.settings import BASE_DIR
@@ -8,6 +9,7 @@ from datetime import datetime
 from PIL import Image
 
 
+@login_required(login_url='/admin/login/')
 def home_page(request):
     if request.method == "POST":
         uploaded_file = request.FILES.get('file_input')
@@ -33,10 +35,9 @@ def home_page(request):
         image = os.path.join(BASE_DIR, 'media/') + uploaded_file.name
         command = "mkdir " + media_dir_path + uploaded_file_name + "&& mkdir " + media_dir_path + uploaded_file_name + "/input" + "&& mkdir " + media_dir_path + uploaded_file_name + "/output" + " && cp " + image + " " + media_dir_path + uploaded_file_name + "/input/" + " && cd /home/ubuntu/BoostingMonocularDepth/" + " && /home/ubuntu/anaconda3/envs/pytorch_p37/bin/python run.py --Final --data_dir " + media_dir_path + uploaded_file_name + "/input/" + " --output_dir " + media_dir_path + uploaded_file_name + "/output/" + " --depthNet " + choosen_algorithm
         os.system(command)
-        messages.success(request, 'File submitted and saved successful')
-       
+
         image = os.path.join(BASE_DIR, 'media/' + uploaded_file_name + '/output/' + uploaded_file_name + '.png')
-        
+
         with open(image, 'rb') as img:
             response = HttpResponse(img.read(), content_type='image/png')
             response['Content-Disposition'] = 'attachment; filename=' + existing_name.split(".")[0] + "D.png"
